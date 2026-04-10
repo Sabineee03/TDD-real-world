@@ -137,4 +137,22 @@ describe("CalculPriceUseCase", () => {
 
         expect(result).toBe(9);
     });
+
+    test("should apply black friday discount when date is valid", async () => {
+        const reductionGateway = new StubReductionGateway();
+
+        reductionGateway.reduction = [
+            { type: "BLACK_FRIDAY" },
+        ];
+
+        const calculatePrice = new CalculatePriceUseCase(reductionGateway);
+
+        const result = await calculatePrice.execute(
+            [{ price: 100, name: "TSHIRT", quantity: 1, type: "TSHIRT" }],
+            ["BLACK_FRIDAY"],
+            new Date("2025-11-29")
+        );
+
+        expect(result).toBe(50);
+    });
 });
