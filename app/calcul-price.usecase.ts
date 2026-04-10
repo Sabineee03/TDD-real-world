@@ -36,6 +36,10 @@ export class CalculatePriceUseCase {
       return total - (total * reduction.amount) / 100;
     }
 
+    if (reduction?.type === "FIXED") {
+      return Math.max(0, total - reduction.amount);
+    }
+    
     return total;
   }
 }

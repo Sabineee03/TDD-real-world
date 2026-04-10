@@ -58,4 +58,38 @@ describe("CalculPriceUseCase", () => {
 
         expect(result).toBe(90);
     });
+
+    test("should apply fixed reduction", async () => {
+        const reductionGateway = new StubReductionGateway();
+        reductionGateway.reduction = {
+            type: "FIXED",
+            amount: 30,
+        };
+
+        const calculatePrice = new CalculatePriceUseCase(reductionGateway);
+
+        const result = await calculatePrice.execute(
+            [{ price: 100, name: "TSHIRT", quantity: 1 }],
+            "PROMO30"
+        );
+
+        expect(result).toBe(70);
+    });
+
+    test("should not go under zero with fixed reduction", async () => {
+        const reductionGateway = new StubReductionGateway();
+        reductionGateway.reduction = {
+            type: "FIXED",
+            amount: 200,
+        };
+
+        const calculatePrice = new CalculatePriceUseCase(reductionGateway);
+
+        const result = await calculatePrice.execute(
+            [{ price: 100, name: "TSHIRT", quantity: 1 }],
+            "PROMO200"
+        );
+
+        expect(result).toBe(0);
+    });
 });
