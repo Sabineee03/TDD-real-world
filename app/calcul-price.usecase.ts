@@ -10,3 +10,15 @@ export type Product = {
 export type Discount = {
   type: string;
 };
+
+
+export class CalculatePriceUseCase {
+  async execute(
+    products: { price: number; name: string; quantity: number }[]
+  ) {
+    return products.reduce(
+      (total, product) => total + product.price * product.quantity,
+      0
+    );
+  }
+}
