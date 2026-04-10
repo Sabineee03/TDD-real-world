@@ -14,7 +14,7 @@ describe("CalculPriceUseCase", () => {
     test("Should return total price for one product without discount", async () => {
         const calculatePrice = new CalculatePriceUseCase();
         const result = await calculatePrice.execute([
-            { price: 10, name: "TSHIRT", quantity: 1 },
+            { price: 10, name: "TSHIRT", quantity: 1, type: "TSHIRT" },
         ]);
         expect(result).toBe(10);
     });
@@ -23,8 +23,8 @@ describe("CalculPriceUseCase", () => {
         const calculatePrice = new CalculatePriceUseCase();
 
         const result = await calculatePrice.execute([
-            { price: 10, name: "TSHIRT", quantity: 1 },
-            { price: 20, name: "PULL", quantity: 1 },
+            { price: 10, name: "TSHIRT", quantity: 1, type: "TSHIRT" },
+            { price: 20, name: "PULL", quantity: 1, type: "PULL" },
         ]);
 
         expect(result).toBe(30);
@@ -34,7 +34,7 @@ describe("CalculPriceUseCase", () => {
         const calculatePrice = new CalculatePriceUseCase();
 
         const result = await calculatePrice.execute([
-            { price: 10, name: "TSHIRT", quantity: 2 },
+            { price: 10, name: "TSHIRT", quantity: 2, type: "TSHIRT" },
         ]);
 
         expect(result).toBe(20);
@@ -51,7 +51,7 @@ describe("CalculPriceUseCase", () => {
 
         const result = await calculatePrice.execute(
             [
-            { price: 100, name: "TSHIRT", quantity: 1 },
+            { price: 100, name: "TSHIRT", quantity: 1, type: "TSHIRT" },
             ],
             "PROMO10"
         );
@@ -69,7 +69,7 @@ describe("CalculPriceUseCase", () => {
         const calculatePrice = new CalculatePriceUseCase(reductionGateway);
 
         const result = await calculatePrice.execute(
-            [{ price: 100, name: "TSHIRT", quantity: 1 }],
+            [{ price: 100, name: "TSHIRT", quantity: 1, type: "TSHIRT" }],
             "PROMO30"
         );
 
@@ -86,10 +86,27 @@ describe("CalculPriceUseCase", () => {
         const calculatePrice = new CalculatePriceUseCase(reductionGateway);
 
         const result = await calculatePrice.execute(
-            [{ price: 100, name: "TSHIRT", quantity: 1 }],
+            [{ price: 100, name: "TSHIRT", quantity: 1, type: "TSHIRT" }],
             "PROMO200"
         );
 
         expect(result).toBe(0);
+    });
+
+    test("should buy one get one free on tshirt", async () => {
+        const reductionGateway = new StubReductionGateway();
+        reductionGateway.reduction = {
+            type: "FREE_PRODUCT",
+            productType: "TSHIRT",
+        };
+
+        const calculatePrice = new CalculatePriceUseCase(reductionGateway);
+
+        const result = await calculatePrice.execute(
+            [{ price: 10, name: "TSHIRT", quantity: 2, type: "TSHIRT" }],
+            "BOGO"
+        );
+
+        expect(result).toBe(10);
     });
 });
