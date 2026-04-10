@@ -3,9 +3,9 @@ import { test, describe, expect } from "vitest";
 
 
 export class StubReductionGateway implements ReductionGateway {
-  reduction;
+   reduction: any[] = [];
 
-  async getReductionByCode(code?: string) {
+  async getReductionByCode(code?: string | string[]){
     return this.reduction;
   }
 }
@@ -42,10 +42,12 @@ describe("CalculPriceUseCase", () => {
 
     test("should apply percentage reduction", async () => {
         const reductionGateway = new StubReductionGateway();
-        reductionGateway.reduction = {
-            type: "PERCENTAGE",
-            amount: 10,
-        };
+        reductionGateway.reduction = [
+            {
+                type: "PERCENTAGE",
+                amount: 10,
+            }
+        ];
 
         const calculatePrice = new CalculatePriceUseCase(reductionGateway);
 
@@ -61,10 +63,12 @@ describe("CalculPriceUseCase", () => {
 
     test("should apply fixed reduction", async () => {
         const reductionGateway = new StubReductionGateway();
-        reductionGateway.reduction = {
-            type: "FIXED",
-            amount: 30,
-        };
+        reductionGateway.reduction = [
+            {
+                type: "FIXED",
+                amount: 30,
+            }
+        ];
 
         const calculatePrice = new CalculatePriceUseCase(reductionGateway);
 
@@ -78,10 +82,12 @@ describe("CalculPriceUseCase", () => {
 
     test("should not go under zero with fixed reduction", async () => {
         const reductionGateway = new StubReductionGateway();
-        reductionGateway.reduction = {
-            type: "FIXED",
-            amount: 200,
-        };
+        reductionGateway.reduction = [
+            {
+                type: "FIXED",
+                amount: 200,
+            }
+        ];
 
         const calculatePrice = new CalculatePriceUseCase(reductionGateway);
 
@@ -95,10 +101,12 @@ describe("CalculPriceUseCase", () => {
 
     test("should buy one get one free on tshirt", async () => {
         const reductionGateway = new StubReductionGateway();
-        reductionGateway.reduction = {
-            type: "FREE_PRODUCT",
-            productType: "TSHIRT",
-        };
+        reductionGateway.reduction = [
+            {
+                type: "FREE_PRODUCT",
+                productType: "TSHIRT",
+            }
+        ];
 
         const calculatePrice = new CalculatePriceUseCase(reductionGateway);
 
@@ -108,5 +116,25 @@ describe("CalculPriceUseCase", () => {
         );
 
         expect(result).toBe(10);
+    });
+
+    test("should apply multiple promotions in correct order", async () => {
+        const reductionGateway = new StubReductionGateway();
+
+        reductionGateway.reduction = [
+            { type: "FREE_PRODUCT", productType: "TSHIRT" },
+            { type: "PERCENTAGE", amount: 10 },
+        ];
+
+        reductionGateway.getReductionByCode = async () => reductionGateway.reduction;
+
+        const calculatePrice = new CalculatePriceUseCase(reductionGateway);
+
+        const result = await calculatePrice.execute(
+            [{ price: 10, name: "TSHIRT", quantity: 2, type: "TSHIRT" }],
+            ["BOGO", "PROMO10"]
+        );
+
+        expect(result).toBe(9);
     });
 });
