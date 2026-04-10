@@ -1,5 +1,14 @@
-import { CalculatePriceUseCase } from "../app/calcul-price.usecase";
+import { CalculatePriceUseCase, ReductionGateway } from "../app/calcul-price.usecase";
 import { test, describe, expect } from "vitest";
+
+
+export class StubReductionGateway implements ReductionGateway {
+  reduction;
+
+  async getReductionByCode(code?: string) {
+    return this.reduction;
+  }
+}
 
 describe("CalculPriceUseCase", () => {
     test("Should return total price for one product without discount", async () => {
@@ -29,5 +38,24 @@ describe("CalculPriceUseCase", () => {
         ]);
 
         expect(result).toBe(20);
+    });
+
+    test("should apply percentage reduction", async () => {
+        const reductionGateway = new StubReductionGateway();
+        reductionGateway.reduction = {
+            type: "PERCENTAGE",
+            amount: 10,
+        };
+
+        const calculatePrice = new CalculatePriceUseCase(reductionGateway);
+
+        const result = await calculatePrice.execute(
+            [
+            { price: 100, name: "TSHIRT", quantity: 1 },
+            ],
+            "PROMO10"
+        );
+
+        expect(result).toBe(90);
     });
 });
