@@ -20,4 +20,14 @@ describe("CalculPriceUseCase", () => {
 
         expect(result).toBe(30);
     });
+
+    test("should calculate total price with quantity", async () => {
+        const calculatePrice = new CalculatePriceUseCase();
+
+        const result = await calculatePrice.execute([
+            { price: 10, name: "TSHIRT", quantity: 2 },
+        ]);
+
+        expect(result).toBe(20);
+    });
 });
